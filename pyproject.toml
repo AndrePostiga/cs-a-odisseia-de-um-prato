@@ -2,7 +2,7 @@
 name = "cs-a-odisseia-de-um-prato"
 version = "0.1.0"
 description = ""
-authors = ["Andre Postiga <andre.postiga@msn.com>", "Gabriel Estrela <gabriel.estrela@example.com>"]
+authors = ["Andre Postiga <andre.postiga@msn.com>", "Gabriel Estrela <gabrielfestrella@gmail.com>"]
 readme = "README.md"
 packages = [{include = "app", from = "src"}]
 
