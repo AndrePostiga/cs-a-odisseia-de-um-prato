@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "cs-a-odisseia-de-um-prato"
+version = "0.1.0"
+description = ""
+authors = ["Andre Postiga <andre.postiga@msn.com>", "Gabriel Estrela <gabriel.estrela@example.com>"]
+readme = "README.md"
+packages = [{include = "app", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+dotenv = "^0.9.9"
+pygame = "^2.6.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+black = "^25.1.0"
+ruff = "^0.11.7"
+mypy = "^1.15.0"
+pre-commit = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
