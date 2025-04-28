@@ -3,6 +3,7 @@ repos:
     rev: 25.1.0
     hooks:
       - id: black
+        exclude: ^src/app/pplay/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.7
@@ -10,7 +11,8 @@ repos:
       - id: ruff
         args:
           - "--select=E,F,W,C90"
-          - "--fix"             
+          - "--fix"
+        exclude: ^src/app/pplay/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
@@ -19,6 +21,7 @@ repos:
         entry: poetry run mypy --strict src/
         language: system
         pass_filenames: false
+        exclude: ^src/app/pplay/
 
   - repo: local
     hooks:

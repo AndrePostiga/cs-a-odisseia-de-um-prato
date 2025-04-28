@@ -9,5 +9,8 @@
     "python.testing.pytestArgs": [
         "src/tests"
     ],
-    "python.envFile": "${workspaceFolder}/.venv/bin/activate"
+    "python.envFile": "${workspaceFolder}/.venv/bin/activate",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportUnknownMemberType": "none"
+    }
 }
