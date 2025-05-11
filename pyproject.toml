@@ -12,6 +12,7 @@ dotenv = "^0.9.9"
 pygame = "^2.6.1"
 dependency-injector = "^4.46.0"
 python-json-logger = "^3.3.0"
+pytmx = "^3.32"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
@@ -38,7 +39,11 @@ exclude = '''
 [tool.ruff]
 extend-exclude = ["src/app/pplay/**"]
 
+[tool.ruff.lint]
+external = ["pygame"]
+
 [tool.mypy]
 exclude = "src/app/pplay/.*"
 disable_error_code = ["no-untyped-call"]
+ignore_missing_imports = true
 
