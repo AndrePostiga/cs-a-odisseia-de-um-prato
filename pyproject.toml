@@ -46,4 +46,5 @@ external = ["pygame"]
 exclude = "src/app/pplay/.*"
 disable_error_code = ["no-untyped-call"]
 ignore_missing_imports = true
-
+disallow_untyped_defs = true
+check_untyped_defs = false

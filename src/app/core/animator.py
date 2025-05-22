@@ -22,7 +22,7 @@ class Animator:
         self._frame_index = 0
         self._elapsed = 0.0
 
-    def set_state(self, state: AnimationState):
+    def set_state(self, state: AnimationState) -> None:
         if state != self._state:
             self._state = state
             self._frame_index = 0
