@@ -1,166 +1,207 @@
-from app.core.game_object import AbstractGameObject
 from app.core.observer import Observable
 from app.entities.tile import Tile
 from app.pplay.window import Window
-from app.core.animator import Animator, AnimationData
 from app.core.animation_state import AnimationState
-from app.seedwork.path_helper import asset_path
-from app.core.physics import WallSide
-from app.pplay.keyboard import Keyboard
-import pygame
+from app.components.movement import Movement
+from app.components.animation_component import AnimationComponent
+from app.components.input_handler import InputHandler
+from app.components.transform import Transform
+from app.components.render import Render
+from app.core.collision_system import CollisionHandler
+from typing import List
 import logging
 
 
-class Potato(AbstractGameObject, Observable):
-    def __init__(self, x: int, y: int):
+class Potato(Observable):
+    def __init__(self, x: float, y: float):
         self.logger = logging.getLogger(__name__)
-        AbstractGameObject.__init__(self)
         Observable.__init__(self)
-        self.state = AnimationState.IDLE
-        self.x = x
-        self.y = y
 
-        self.animator = self.create_animator()
+        # Inicializa componentes
+        self.animation_component = AnimationComponent()
+        first_frame = self.animation_component.get_current_frame()
+        width = first_frame.get_width()
+        height = first_frame.get_height()
 
-        first_frame = self.animator.get_current_frame()
-        self.width = first_frame.get_width()
-        self.height = first_frame.get_height()
-        self.rect = pygame.Rect(x, y, self.width, self.height)
+        self.transform = Transform(x, y, width, height)
+        self.movement = Movement(speed=1000.0, gravity=2000.0, jump_velocity=-800.0)
+        self.input_handler = InputHandler()
+        self.renderer = Render(self.animation_component)
+        self.collision_handler = CollisionHandler()
 
-        self.timer = 0.0
-        self.keyboard = Keyboard()
-        self.speed = 1000
-        self.vx = 0
-        self.vy = 0
+        self.facing_right = True
 
-        self.gravity = 10
-        self.jump_strength = -3000
-        self.is_on_ground = False
+        # Pulo
+        self.is_charging_jump = False
+        self.charge_time = 0.0
+        self.max_charge_time = 1.0
+        self.was_space_pressed = False
 
-    def _load_image_and_scale(self, scale: int, *path_parts: str) -> pygame.Surface:
-        image_path = asset_path(*path_parts)
-        image = pygame.image.load(image_path).convert_alpha()
-        scaled_image = pygame.transform.scale(
-            image, (image.get_width() * scale, image.get_height() * scale)
-        )
-        return scaled_image
+    def handle_input_and_movement(self, delta_time: float) -> None:
+        left, right, jump = self.input_handler.get_movement_input()
 
-    def create_animator(self) -> Animator:
-        scale = 4
-        idle = [
-            self._load_image_and_scale(
-                scale, "images", "characters", "elf", "idle", f"{i}.png"
-            )
-            for i in range(4)
-        ]
-        run = [
-            self._load_image_and_scale(
-                scale, "images", "characters", "elf", "run", f"{i}.png"
-            )
-            for i in range(2)
-        ]
-        return Animator(
-            {
-                AnimationState.IDLE: AnimationData(frames=idle, frame_duration=0.1),
-                AnimationState.RUN: AnimationData(frames=run, frame_duration=0.2),
-            }
-        )
-
-    def _change_state(self, state: AnimationState) -> None:
-        if state != self.state:
-            self.state = state
-            self.animator.set_state(state)
-
-    def handle_movement(self, delta_time: float) -> None:
-        # Reset horizontal velocity only
-        self.vx = 0
+        # movimento horizontal
+        self.movement.vx = 0.0
         moved = False
 
-        # Horizontal movement
-        if self.keyboard.key_pressed("left"):
-            self.vx = -self.speed
+        if left:
+            self.movement.set_horizontal_velocity(-1.0)
+            self.facing_right = False
             moved = True
-        if self.keyboard.key_pressed("right"):
-            self.vx = self.speed
+        elif right:
+            self.movement.set_horizontal_velocity(1.0)
+            self.facing_right = True
             moved = True
 
-        # Jump only when space is pressed AND on ground
-        if self.keyboard.key_pressed("space") and self.is_on_ground:
-            self.vy = self.jump_strength
-            self.is_on_ground = False
+        # Pulo
+        if jump and self.movement.is_on_ground:
+            if not self.was_space_pressed:
+                self.is_charging_jump = True
+                self.charge_time = 0.0
+            else:
+                self.charge_time += delta_time
+                if self.charge_time > self.max_charge_time:
+                    self.charge_time = self.max_charge_time
 
-        # ALWAYS apply gravity (this creates smooth acceleration)
-        self.vy += int(self.gravity)
+        elif not jump and self.was_space_pressed and self.is_charging_jump:
+            # Quando soltar espaço fazer o pulo
+            self._execute_charged_jump()
+            self.is_charging_jump = False
+            self.charge_time = 0.0
 
-        # Update animation state (outside the gravity condition)
+        self.was_space_pressed = jump
+
+        # Gravidade
+        self.movement.apply_gravity(delta_time)
+
+        # Atualizar Animações
         if moved:
-            self._change_state(AnimationState.RUN)
+            self.animation_component.change_state(AnimationState.RUN)
+        elif not self.movement.is_on_ground:
+            self.animation_component.change_state(AnimationState.JUMP)
         else:
-            self._change_state(AnimationState.IDLE)
+            self.animation_component.change_state(AnimationState.IDLE)
 
-    def on_wall_collision(self, wall_side: WallSide) -> None:
-        if wall_side == WallSide.LEFT:
-            self.x = 5
-        elif wall_side == WallSide.RIGHT:
-            self.x = self.rect.x - 5
+        self.animation_component.set_facing_direction(self.facing_right)
 
-        if wall_side == WallSide.TOP:
-            self.logger.info("Hit top wall")
-            self.notify_observers("hit_top_wall")
-        elif wall_side == WallSide.BOTTOM:
-            self.logger.info("Hit bottom wall")
-            self.notify_observers("hit_bottom_wall")
+    def _execute_charged_jump(self):
+        """Execute jump based on charge time."""
+        # Calculate jump multiplier (0.3 to 2.0 based on charge time)
+        charge_ratio = self.charge_time / self.max_charge_time
+        min_multiplier = 0.3
+        max_multiplier = 2.0
+        jump_multiplier = (
+            min_multiplier + (max_multiplier - min_multiplier) * charge_ratio
+        )
 
-    def on_collision(self, other: AbstractGameObject) -> None:
-        if isinstance(other, Tile):
-            # Colliding with top of a tile (landing)
-            if (
-                self.vy > 0
-                and self.rect.bottom >= other.rect.top
-                and self.rect.top < other.rect.top
-            ):
-                self.y = other.rect.top - self.height
-                self.vy = 0
-                self.is_on_ground = True  # Character is on ground now
+        # Apply jump with multiplier
+        base_jump_velocity = self.movement.jump_velocity
+        self.movement.vy = base_jump_velocity * jump_multiplier
+        self.movement.is_on_ground = False
 
-            # Hitting ceiling
-            elif (
-                self.vy < 0
-                and self.rect.top <= other.rect.bottom
-                and self.rect.bottom > other.rect.bottom
-            ):
-                self.y = other.rect.bottom
-                self.vy = 0
+        print(
+            f"Jumped with {charge_ratio * 100:.1f}% charge (multiplier: {jump_multiplier:.2f})"
+        )
 
-            # Horizontal collisions remain similar
-            elif (
-                self.vx > 0
-                and self.rect.right >= other.rect.left
-                and self.rect.left < other.rect.left
-            ):
-                self.x = other.rect.left - self.width
-                self.vx = 0
-            elif (
-                self.vx < 0
-                and self.rect.left <= other.rect.right
-                and self.rect.right > other.rect.right
-            ):
-                self.x = other.rect.right
-                self.vx = 0
+    def handle_collisions(
+        self, tiles: List[Tile], window_width: int, window_height: int
+    ) -> None:
+        # Check if we were on ground before collision handling
+        was_on_ground = self.movement.is_on_ground
+
+        # Handle tile collisions (this will set proper ground state)
+        self.collision_handler.handle_tile_collisions(
+            self.transform, self.movement, tiles
+        )
+
+        # Handle window bounds and check for boundary hits
+        boundary_hit = self.collision_handler.check_bounds(
+            self.transform, self.movement, window_width, window_height
+        )
+
+        # Notify observers if we hit a boundary
+        if boundary_hit:
+            self.notify_observers(boundary_hit)
+
+        # Debug ground state changes
+        if was_on_ground != self.movement.is_on_ground:
+            print(
+                f"Ground state changed: was_on_ground={was_on_ground}, is_on_ground={self.movement.is_on_ground}"
+            )
 
     def update(self, delta_time: float) -> None:
-        self.handle_movement(delta_time)
+        self.handle_input_and_movement(delta_time)
+        self.renderer.update(delta_time)
 
-        self.is_on_ground = False
+    def safe_move(
+        self,
+        delta_time: float,
+        tiles: List[Tile],
+        window_width: int,
+        window_height: int,
+    ) -> None:
+        """Safely move the character with collision detection."""
+        # Calculate intended movement
+        dx = self.movement.vx * delta_time
+        dy = self.movement.vy * delta_time
 
-        self.x += int(self.vx * delta_time)
-        self.y += int(self.vy * delta_time)
-        self.animator.update(delta_time)
-        self.rect.x = self.x
-        self.rect.y = self.y
+        # Use collision system to move safely
+        self.collision_handler.safe_move(self.transform, self.movement, dx, dy, tiles)
+
+        # Handle window bounds and check for boundary hits
+        boundary_hit = self.collision_handler.check_bounds(
+            self.transform, self.movement, window_width, window_height
+        )
+
+        # Notify observers if we hit a boundary
+        if boundary_hit:
+            self.notify_observers(boundary_hit)
 
     def draw(self, window: Window) -> None:
-        if window.screen is None:
-            raise ValueError("Window screen is None")
-        pygame.draw.rect(window.screen, (255, 0, 0), self.rect, 1)
-        window.screen.blit(self.animator.get_current_frame(), (self.x, self.y))
+        self.renderer.draw(window, self.transform)
+
+    @property
+    def x(self) -> float:
+        return self.transform.x
+
+    @x.setter
+    def x(self, value: float):
+        self.transform.x = value
+        self.transform.update_rect()
+
+    @property
+    def y(self) -> float:
+        return self.transform.y
+
+    @y.setter
+    def y(self, value: float):
+        self.transform.y = value
+        self.transform.update_rect()
+
+    @property
+    def rect(self):
+        return self.transform.rect
+
+    @property
+    def width(self) -> int:
+        return self.transform.width
+
+    @property
+    def height(self) -> int:
+        return self.transform.height
+
+    @property
+    def vx(self) -> float:
+        return self.movement.vx
+
+    @vx.setter
+    def vx(self, value: float):
+        self.movement.vx = value
+
+    @property
+    def vy(self) -> float:
+        return self.movement.vy
+
+    @vy.setter
+    def vy(self, value: float):
+        self.movement.vy = value

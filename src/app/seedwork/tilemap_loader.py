@@ -11,6 +11,7 @@ from app.core.tilemap_group import TilemapGroup
 
 def load_tilemap_groups(map_name: str) -> List[Tuple[TilemapGroup, Group]]:
     map_path = asset_path("tilemaps", f"{map_name}.tmx")
+    print(f"Loading tilemap from: {map_path}")
     map_data = load_pygame(map_path)
 
     ordered_groups: List[Tuple[TilemapGroup, Group]] = []

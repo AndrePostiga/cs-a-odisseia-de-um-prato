@@ -18,7 +18,6 @@ pytmx = "^3.32"
 pytest = "^8.3.5"
 black = "^25.1.0"
 ruff = "^0.11.7"
-mypy = "^1.15.0"
 pre-commit = "^4.2.0"
 
 [build-system]
@@ -38,13 +37,9 @@ exclude = '''
 
 [tool.ruff]
 extend-exclude = ["src/app/pplay/**"]
+line-length = 88
 
 [tool.ruff.lint]
 external = ["pygame"]
-
-[tool.mypy]
-exclude = "src/app/pplay/.*"
-disable_error_code = ["no-untyped-call"]
-ignore_missing_imports = true
-disallow_untyped_defs = true
-check_untyped_defs = false
+select = ["E", "F", "W"]
+ignore = ["E501", "C901"]

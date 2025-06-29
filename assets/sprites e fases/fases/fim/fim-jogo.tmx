@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="3" nextobjectid="1">
+ <imagelayer id="2" name="Camada de Imagens 1">
+  <image source="fim.png" width="1920" height="1088"/>
+ </imagelayer>
+</map>

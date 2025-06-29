@@ -9,6 +9,17 @@
     ],
     "file.lastUsedOpenFilter": "Todos os Ficheiros (*)",
     "fileStates": {
+        "C:/Users/andre/AppData/Local/Temp/a67fe927-035b-495b-a3f1-9156896cdbd5_fases.zip.bd5/fases/cozinha/cozinha.tmx": {
+            "scale": 0.25,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 786,
+                "y": 546
+            }
+        },
+        "C:/Users/andre/AppData/Local/Temp/a67fe927-035b-495b-a3f1-9156896cdbd5_fases.zip.bd5/fases/cozinha/tile-cozinha-esgoto.tsx": {
+            "scaleInDock": 1
+        },
         "map_1.tmx": {
             "scale": 0.5,
             "selectedLayer": 2,
@@ -22,7 +33,7 @@
             "selectedLayer": 0,
             "viewCenter": {
                 "x": 893,
-                "y": 724
+                "y": 725
             }
         },
         "mapa1.tmx": {
@@ -53,13 +64,16 @@
     "map.tileWidth": 16,
     "map.width": 120,
     "openFiles": [
-        "mapa1.tmx",
-        "map_1.tmx"
+        "map_1.tmx",
+        "C:/Users/andre/AppData/Local/Temp/a67fe927-035b-495b-a3f1-9156896cdbd5_fases.zip.bd5/fases/cozinha/cozinha.tmx",
+        "map_2.tmx"
     ],
     "project": "a_odisseia_de_um_prato.tiled-project",
     "recentFiles": [
-        "mapa1.tmx",
+        "map_2.tmx",
+        "C:/Users/andre/AppData/Local/Temp/a67fe927-035b-495b-a3f1-9156896cdbd5_fases.zip.bd5/fases/cozinha/cozinha.tmx",
         "map_1.tmx",
+        "mapa1.tmx",
         "world_tileset.tsx",
         "sem título.tmx"
     ],
