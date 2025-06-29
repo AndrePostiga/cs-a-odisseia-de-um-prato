@@ -10,7 +10,6 @@ packages = [{include = "app", from = "src"}]
 python = "^3.12"
 dotenv = "^0.9.9"
 pygame = "^2.6.1"
-dependency-injector = "^4.46.0"
 python-json-logger = "^3.3.0"
 pytmx = "^3.32"
 

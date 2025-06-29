@@ -5,13 +5,13 @@ from app.seedwork.path_helper import asset_path
 
 
 class AnimationComponent:
-    def __init__(self, scale: int = 1.5):
+    def __init__(self, scale: float = 1.5):
         self.scale = scale
         self.state = AnimationState.IDLE
         self.facing_right = True
         self.animator = self._create_animator()
 
-    def _load_image_and_scale(self, scale: int, *path_parts: str) -> pygame.Surface:
+    def _load_image_and_scale(self, scale: float, *path_parts: str) -> pygame.Surface:
         image_path = asset_path(*path_parts)
         image = pygame.image.load(image_path).convert_alpha()
         scaled_image = pygame.transform.scale(

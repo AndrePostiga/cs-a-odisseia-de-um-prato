@@ -1,13 +1,22 @@
 from app.config.log_config import setup_logging
-from app.ioc_container import Container
+from app.config.config import Config
+from app.pplay.window import Window
+from app.core.game import Game
 
 
 def main() -> None:
-    # Setup logging first thing
     setup_logging()
 
-    container = Container()
-    game = container.game()
+    config = Config.load()
+    print(f"Configuration loaded: {config}")
+
+    window = Window(
+        width=config.WINDOW_WIDTH,
+        height=config.WINDOW_HEIGHT,
+    )
+    window.set_title(config.WINDOW_TITLE)
+
+    game = Game(window)
     game.run()
 
 
