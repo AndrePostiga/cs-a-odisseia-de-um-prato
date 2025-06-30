@@ -13,6 +13,11 @@ setup:
 	fi
 	@echo "⚙️  Configuring Poetry..."
 	$(POETRY) config virtualenvs.in-project true
+	@echo "🔧 Creating virtual environment..."
+	@if [ ! -d ".venv" ]; then \
+		python3 -m venv .venv; \
+		$(POETRY) env use .venv/bin/python; \
+	fi
 	@echo "✅ Setup completed."
 
 install: setup

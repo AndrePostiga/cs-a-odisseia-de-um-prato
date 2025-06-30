@@ -52,8 +52,8 @@ class Level:
             self.main_character.safe_move(
                 delta_time=delta_time,
                 tiles=self.tiles,
-                window_width=self.window.width,  # type: ignore
-                window_height=self.window.height,  # type: ignore
+                window_width=self.window.width,
+                window_height=self.window.height,
             )
 
     def draw(self) -> None:
