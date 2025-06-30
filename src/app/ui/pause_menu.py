@@ -1,4 +1,5 @@
 import logging
+import pygame
 from app.pplay.window import Window
 from app.pplay.sprite import Sprite
 from app.ui.menu_button import MenuButton
@@ -16,6 +17,9 @@ class PauseMenu(Observer, Observable):
         self.overlay = Sprite(asset_path("images", "pause_overlay.png"))
         self.overlay.x = 0
         self.overlay.y = 0
+        # Scale overlay to cover entire screen
+        self.overlay.width = window.width
+        self.overlay.height = window.height
 
         # Calculate button positions (centered)
         button_width = 200
@@ -24,6 +28,10 @@ class PauseMenu(Observer, Observable):
 
         center_x = (window.width - button_width) // 2
         start_y = (window.height - (3 * button_height + 2 * button_spacing)) // 2
+
+        # Store positions for later use
+        self.center_x = center_x
+        self.start_y = start_y
 
         # Create buttons with actions
         self.continue_button = MenuButton(
@@ -88,12 +96,23 @@ class PauseMenu(Observer, Observable):
         self.mouse_clicked = mouse_pressed
 
     def draw(self) -> None:
-        self.overlay.draw()
+        # Draw semi-transparent overlay manually if sprite doesn't work
+        overlay_surface = pygame.Surface((self.window.width, self.window.height))
+        overlay_surface.fill((0, 0, 0))
+        overlay_surface.set_alpha(180)  # Semi-transparent
+        self.window.get_screen().blit(overlay_surface, (0, 0))
 
-        # Draw pause title
+        # Draw buttons next (middle layer)
+        for button in self.buttons:
+            button.draw()
+
+        # Draw title last (foreground) so it appears on top
         title_text = "JOGO PAUSADO"
-        title_x = self.window.width // 2 - 120
-        title_y = self.window.height // 2 - 150
+        # Calculate center position for title more precisely
+        # Estimate text width: roughly 12 pixels per character at size 48
+        text_width = len(title_text) * 28  # More accurate estimation for size 48
+        title_x = (self.window.width - text_width) // 2  # Perfect centering
+        title_y = self.start_y - 100  # Position above buttons with proper spacing
         self.window.draw_text(
             title_text,
             title_x,
@@ -103,6 +122,3 @@ class PauseMenu(Observer, Observable):
             font_name="Arial",
             bold=True,
         )
-
-        for button in self.buttons:
-            button.draw()
