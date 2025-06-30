@@ -1,6 +1,7 @@
 import logging
 from app.pplay.window import Window
 from app.pplay.sprite import Sprite
+from app.pplay.sound import Sound
 from app.ui.menu_button import MenuButton
 from app.seedwork.path_helper import asset_path
 from app.core.observer import Observer, Observable
@@ -11,6 +12,10 @@ class MainMenu(Observer, Observable):
         Observable.__init__(self)
         self.logger = logging.getLogger(__name__)
         self.window = window
+
+        self.menu_music = Sound(asset_path("musics", "menu.mp3"))
+        self.menu_music.set_volume(30)
+        self.menu_music.set_repeat(True)
 
         # Background
         self.background = Sprite(asset_path("images", "menu_background.png"))
@@ -47,6 +52,15 @@ class MainMenu(Observer, Observable):
         self.mouse_clicked = False
 
         self.logger.info("Main menu initialized")
+
+    def start_music(self) -> None:
+        if not self.menu_music.is_playing():
+            self.menu_music.play()
+            self.logger.info("Menu music started")
+
+    def stop_music(self) -> None:
+        self.menu_music.stop()
+        self.logger.info("Menu music stopped")
 
     def on_notification(self, message: str) -> None:
         self.logger.info(f"MainMenu received notification: {message}")

@@ -1,11 +1,13 @@
 import logging
 from typing import Optional
 from app.pplay.window import Window
+from app.pplay.sound import Sound
 from app.core.level_slider import LevelSlider
 from app.core.game_state import GameState
 from app.ui.main_menu import MainMenu
 from app.ui.pause_menu import PauseMenu
 from app.core.observer import Observer
+from app.seedwork.path_helper import asset_path
 
 
 class Game(Observer):
@@ -15,6 +17,10 @@ class Game(Observer):
         self.running = True
         self.current_state = GameState.MENU
         self.logger.info("Game initialized")
+
+        self.game_music = Sound(asset_path("musics", "game.mp3"))
+        self.game_music.set_volume(25)
+        self.game_music.set_repeat(True)
 
         # Menus
         self.menu = MainMenu(window)
@@ -37,14 +43,21 @@ class Game(Observer):
             self._start_game()
         elif message == "continue_game":
             self.current_state = GameState.PLAYING
+            if not self.game_music.is_playing():
+                self.game_music.play()
             self.logger.info("Game resumed from menu")
         elif message == "main_menu":
+            self.game_music.stop()
+            self.menu.start_music()
             self.current_state = GameState.MENU
-            self.level_slider = None  # Limpar o estado do jogo como um todo
+            self.level_slider = None
             self.logger.info("Returned to main menu")
 
     def _start_game(self) -> None:
         self.logger.info("Starting game")
+        self.menu.stop_music()
+        self.game_music.play()
+
         self.window.set_background_color((0, 0, 0))
         self.level_slider = LevelSlider(self.window)
         self.current_state = GameState.PLAYING
@@ -56,15 +69,19 @@ class Game(Observer):
         if esc_currently_pressed and not self.esc_pressed:
             if self.current_state == GameState.PLAYING:
                 self.current_state = GameState.PAUSED
+                self.game_music.pause()
                 self.logger.info("Game paused")
             elif self.current_state == GameState.PAUSED:
                 self.current_state = GameState.PLAYING
+                self.game_music.unpause()
                 self.logger.info("Game resumed")
 
         self.esc_pressed = esc_currently_pressed
 
     def run(self) -> None:
         self.logger.info("Starting game loop")
+        self.menu.start_music()
+
         while self.running:
             delta_time = self.window.delta_time()
 
