@@ -47,7 +47,6 @@ class PauseMenu(Observer, Observable):
             "exit_game",
         )
 
-        # Register as observer for button events
         self.continue_button.add_observer(self)
         self.main_menu_button.add_observer(self)
         self.exit_button.add_observer(self)
@@ -58,7 +57,6 @@ class PauseMenu(Observer, Observable):
         self.logger.info("PauseMenu initialized")
 
     def on_notification(self, message: str) -> None:
-        """Handle notifications from button clicks."""
         self.logger.info(f"PauseMenu received notification: {message}")
 
         if message == "continue_game":
@@ -72,20 +70,16 @@ class PauseMenu(Observer, Observable):
             self.window.close()
 
     def update(self, delta_time: float) -> None:
-        """Update pause menu logic."""
         mouse = self.window.get_mouse()
         mouse_pos = mouse.get_position()
         mouse_x, mouse_y = mouse_pos
 
-        # Update hover states for all buttons
         for button in self.buttons:
             button.update_hover_state(mouse_x, mouse_y)
 
-        # Handle mouse clicks
         mouse_pressed = mouse.is_button_pressed(mouse.BUTTON_LEFT)
 
         if mouse_pressed and not self.mouse_clicked:
-            # Mouse was just pressed
             for button in self.buttons:
                 if button.is_clicked(mouse_x, mouse_y):
                     button.on_click()
@@ -94,13 +88,11 @@ class PauseMenu(Observer, Observable):
         self.mouse_clicked = mouse_pressed
 
     def draw(self) -> None:
-        """Draw the pause menu."""
-        # Draw semi-transparent overlay
         self.overlay.draw()
 
         # Draw pause title
         title_text = "JOGO PAUSADO"
-        title_x = self.window.width // 2 - 120  # Rough centering
+        title_x = self.window.width // 2 - 120
         title_y = self.window.height // 2 - 150
         self.window.draw_text(
             title_text,
@@ -112,6 +104,5 @@ class PauseMenu(Observer, Observable):
             bold=True,
         )
 
-        # Draw buttons
         for button in self.buttons:
             button.draw()

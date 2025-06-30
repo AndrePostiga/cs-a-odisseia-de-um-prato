@@ -29,17 +29,17 @@ class MainMenu(Observer, Observable):
             asset_path("images", "play_button.png"),
             center_x,
             start_y,
-            "start_game",  # Action identifier
+            "start_game",  # Mensagem a notificar
         )
 
         self.quit_button = MenuButton(
             asset_path("images", "quit_button.png"),
             center_x,
             start_y + button_height + button_spacing,
-            "quit_game",  # Action identifier
+            "quit_game",  # Mensagem a notificar
         )
 
-        # Register as observer for button events
+        # Registro dos observadores
         self.play_button.add_observer(self)
         self.quit_button.add_observer(self)
 
@@ -49,32 +49,26 @@ class MainMenu(Observer, Observable):
         self.logger.info("Main menu initialized")
 
     def on_notification(self, message: str) -> None:
-        """Handle notifications from button clicks."""
         self.logger.info(f"MainMenu received notification: {message}")
 
         if message == "start_game":
             self.logger.info("Play button clicked")
-            # Notify game observers about the start game request
             self.notify_observers("start_game")
         elif message == "quit_game":
             self.logger.info("Quit button clicked")
             self.window.close()
 
     def update(self, delta_time: float) -> None:
-        """Update menu logic."""
         mouse = self.window.get_mouse()
         mouse_pos = mouse.get_position()
         mouse_x, mouse_y = mouse_pos
 
-        # Update hover states for all buttons
         for button in self.buttons:
             button.update_hover_state(mouse_x, mouse_y)
 
-        # Handle mouse clicks
         mouse_pressed = mouse.is_button_pressed(mouse.BUTTON_LEFT)
 
         if mouse_pressed and not self.mouse_clicked:
-            # Mouse was just pressed
             for button in self.buttons:
                 if button.is_clicked(mouse_x, mouse_y):
                     button.on_click()
@@ -83,10 +77,7 @@ class MainMenu(Observer, Observable):
         self.mouse_clicked = mouse_pressed
 
     def draw(self) -> None:
-        """Draw the menu."""
-        # Draw background
         self.background.draw()
 
-        # Draw buttons
         for button in self.buttons:
             button.draw()
