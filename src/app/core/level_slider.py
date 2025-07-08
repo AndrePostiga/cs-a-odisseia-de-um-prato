@@ -45,7 +45,7 @@ class LevelSlider(Observer):
             return
 
         # Guardar velocidades do jogador para manter o movimento
-        vx, vy = self.main_character.vx, self.main_character.vy
+        vx, vy = self.main_character.movement.vx, self.main_character.movement.vy
         self.logger.info(f"Velocidades antes da transição: vx={vx}, vy={vy}")
 
         self.logger.info(f"Avançando para o nível {next_level_num}")
@@ -55,21 +55,25 @@ class LevelSlider(Observer):
         self.current_level = self._create_level(self.current_level_num)
 
         # Posicionar o jogador na base do novo nível (margem mínima para máxima fluidez)
-        self.main_character.y = self.window.height - self.main_character.height - 2
-
-        # Manter as velocidades para continuar o movimento
-        self.main_character.vx = vx
-        # Quando bate no topo (subindo), deve continuar subindo no próximo nível
-        if vy < 0:  # estava subindo
-            self.main_character.vy = vy
-        else:  # já estava descendo (caso raro)
-            self.main_character.vy = vy  # mantém a velocidade
-
-        self.logger.info(
-            f"Velocidades após a transição: vx={self.main_character.vx}, vy={self.main_character.vy}"
+        self.main_character.transform.y = (
+            self.window.height - self.main_character.transform.height - 2
         )
 
-        self.logger.info(f"Posição do jogador ajustada para y={self.main_character.y}")
+        # Manter as velocidades para continuar o movimento
+        self.main_character.movement.vx = vx
+        # Quando bate no topo (subindo), deve continuar subindo no próximo nível
+        if vy < 0:  # estava subindo
+            self.main_character.movement.vy = vy
+        else:  # já estava descendo (caso raro)
+            self.main_character.movement.vy = vy  # mantém a velocidade
+
+        self.logger.info(
+            f"Velocidades após a transição: vx={self.main_character.movement.vx}, vy={self.main_character.movement.vy}"
+        )
+
+        self.logger.info(
+            f"Posição do jogador ajustada para y={self.main_character.transform.y}"
+        )
         self._add_player_to_current_level()
 
     def slide_previous(self) -> None:
@@ -79,7 +83,7 @@ class LevelSlider(Observer):
             return
 
         # Guardar velocidades do jogador para manter o movimento
-        vx, vy = self.main_character.vx, self.main_character.vy
+        vx, vy = self.main_character.movement.vx, self.main_character.movement.vy
         self.logger.info(f"Velocidades antes da transição: vx={vx}, vy={vy}")
 
         self.logger.info(f"Retornando para o nível {prev_level_num}")
@@ -89,20 +93,20 @@ class LevelSlider(Observer):
         self.current_level = self._create_level(self.current_level_num)
 
         # Posicionar o jogador no topo do novo nível (margem mínima para máxima fluidez)
-        self.main_character.y = 2
+        self.main_character.transform.y = 2
 
         # Manter as velocidades para continuar o movimento
-        self.main_character.vx = vx
+        self.main_character.movement.vx = vx
         # Quando bate no fundo (descendo), deve continuar descendo no nível anterior
         if vy > 0:  # estava descendo
-            self.main_character.vy = (
+            self.main_character.movement.vy = (
                 vy * 0.9
             )  # continua descendo com 90% da velocidade (quase sem perda)
         else:  # já estava subindo (caso raro)
-            self.main_character.vy = vy  # mantém a velocidade
+            self.main_character.movement.vy = vy  # mantém a velocidade
 
         self.logger.info(
-            f"Velocidades após a transição: vx={self.main_character.vx}, vy={self.main_character.vy}"
+            f"Velocidades após a transição: vx={self.main_character.movement.vx}, vy={self.main_character.movement.vy}"
         )
 
         self.logger.info("Posição do jogador ajustada para y=2")

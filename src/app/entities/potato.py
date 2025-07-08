@@ -103,105 +103,30 @@ class Potato(Observable):
             f"Jumped with {charge_ratio * 100:.1f}% charge (multiplier: {jump_multiplier:.2f})"
         )
 
-    def handle_collisions(
-        self, tiles: List[Tile], window_width: int, window_height: int
-    ) -> None:
-        # Check if we were on ground before collision handling
-        was_on_ground = self.movement.is_on_ground
-
-        # Handle tile collisions (this will set proper ground state)
-        self.collision_handler.handle_tile_collisions(
-            self.transform, self.movement, tiles
-        )
-
-        # Handle window bounds and check for boundary hits
-        boundary_hit = self.collision_handler.check_bounds(
-            self.transform, self.movement, window_width, window_height
-        )
-
-        # Notify observers if we hit a boundary
-        if boundary_hit:
-            self.notify_observers(boundary_hit)
-
-        # Debug ground state changes
-        if was_on_ground != self.movement.is_on_ground:
-            print(
-                f"Ground state changed: was_on_ground={was_on_ground}, is_on_ground={self.movement.is_on_ground}"
-            )
-
-    def update(self, delta_time: float) -> None:
-        self.handle_input_and_movement(delta_time)
-        self.renderer.update(delta_time)
-
-    def safe_move(
+    def update(
         self,
         delta_time: float,
         tiles: List[Tile],
         window_width: int,
         window_height: int,
     ) -> None:
-        """Safely move the character with collision detection."""
-        # Calculate intended movement
-        dx = self.movement.vx * delta_time
-        dy = self.movement.vy * delta_time
+        self.handle_input_and_movement(delta_time)
 
-        # Use collision system to move safely
-        self.collision_handler.safe_move(self.transform, self.movement, dx, dy, tiles)
+        self.collision_handler.handle_collisions(
+            self.transform, self.movement, tiles, delta_time
+        )
 
-        # Handle window bounds and check for boundary hits
+        self.movement.is_on_ground = self.collision_handler.check_on_ground(
+            self.transform, tiles
+        )
+
         boundary_hit = self.collision_handler.check_bounds(
             self.transform, self.movement, window_width, window_height
         )
-
-        # Notify observers if we hit a boundary
         if boundary_hit:
             self.notify_observers(boundary_hit)
 
+        self.renderer.update(delta_time)
+
     def draw(self, window: Window) -> None:
         self.renderer.draw(window, self.transform)
-
-    @property
-    def x(self) -> float:
-        return self.transform.x
-
-    @x.setter
-    def x(self, value: float):
-        self.transform.x = value
-        self.transform.update_rect()
-
-    @property
-    def y(self) -> float:
-        return self.transform.y
-
-    @y.setter
-    def y(self, value: float):
-        self.transform.y = value
-        self.transform.update_rect()
-
-    @property
-    def rect(self):
-        return self.transform.rect
-
-    @property
-    def width(self) -> int:
-        return self.transform.width
-
-    @property
-    def height(self) -> int:
-        return self.transform.height
-
-    @property
-    def vx(self) -> float:
-        return self.movement.vx
-
-    @vx.setter
-    def vx(self, value: float):
-        self.movement.vx = value
-
-    @property
-    def vy(self) -> float:
-        return self.movement.vy
-
-    @vy.setter
-    def vy(self, value: float):
-        self.movement.vy = value

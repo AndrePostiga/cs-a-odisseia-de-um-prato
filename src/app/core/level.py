@@ -48,12 +48,11 @@ class Level:
 
     def update(self, delta_time: float) -> None:
         if self.main_character:
-            self.main_character.update(delta_time)
-            self.main_character.safe_move(
-                delta_time=delta_time,
-                tiles=self.tiles,
-                window_width=self.window.width,
-                window_height=self.window.height,
+            self.main_character.update(
+                delta_time,
+                self.tiles,
+                self.window.width,
+                self.window.height,
             )
 
     def draw(self) -> None:
