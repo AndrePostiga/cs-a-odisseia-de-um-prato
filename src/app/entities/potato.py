@@ -24,7 +24,7 @@ class Potato(Observable):
         height = first_frame.get_height()
 
         self.transform = Transform(x, y, width, height)
-        self.movement = Movement(speed=1000.0, gravity=2000.0, jump_velocity=-800.0)
+        self.movement = Movement(speed=500.0, gravity=2000.0, jump_velocity=-800.0)
         self.input_handler = InputHandler()
         self.renderer = Render(self.animation_component)
         self.collision_handler = CollisionHandler()
@@ -37,21 +37,31 @@ class Potato(Observable):
         self.max_charge_time = 1.0
         self.was_space_pressed = False
 
+        # Controle de movimento aéreo
+        self.air_direction_locked = False
+        self.air_movement_disabled_by_wall = False
+
     def handle_input_and_movement(self, delta_time: float) -> None:
         left, right, jump = self.input_handler.get_movement_input()
 
-        # movimento horizontal
-        self.movement.vx = 0.0
-        moved = False
+        if self.movement.is_on_ground:
+            self.movement.vx = 0.0
 
-        if left:
-            self.movement.set_horizontal_velocity(-1.0)
-            self.facing_right = False
-            moved = True
-        elif right:
-            self.movement.set_horizontal_velocity(1.0)
-            self.facing_right = True
-            moved = True
+        moved = False
+        if not self.air_movement_disabled_by_wall:
+            if self.movement.is_on_ground or not self.air_direction_locked:
+                if left:
+                    self.movement.set_horizontal_velocity(-1.0)
+                    self.facing_right = False
+                    moved = True
+                elif right:
+                    self.movement.set_horizontal_velocity(1.0)
+                    self.facing_right = True
+                    moved = True
+
+                # trava a direção no ar se o personagem já se moveu pulando
+                if not self.movement.is_on_ground and moved:
+                    self.air_direction_locked = True
 
         # Pulo
         if jump and self.movement.is_on_ground:
@@ -64,17 +74,15 @@ class Potato(Observable):
                     self.charge_time = self.max_charge_time
 
         elif not jump and self.was_space_pressed and self.is_charging_jump:
-            # Quando soltar espaço fazer o pulo
             self._execute_charged_jump()
             self.is_charging_jump = False
             self.charge_time = 0.0
 
         self.was_space_pressed = jump
 
-        # Gravidade
         self.movement.apply_gravity(delta_time)
 
-        # Atualizar Animações
+        # atualização de animações
         if moved:
             self.animation_component.change_state(AnimationState.RUN)
         elif not self.movement.is_on_ground:
@@ -85,22 +93,17 @@ class Potato(Observable):
         self.animation_component.set_facing_direction(self.facing_right)
 
     def _execute_charged_jump(self):
-        """Execute jump based on charge time."""
-        # Calculate jump multiplier (0.3 to 2.0 based on charge time)
-        charge_ratio = self.charge_time / self.max_charge_time
+        charge = self.charge_time / self.max_charge_time
         min_multiplier = 0.3
         max_multiplier = 2.0
-        jump_multiplier = (
-            min_multiplier + (max_multiplier - min_multiplier) * charge_ratio
-        )
+        jump_multiplier = min_multiplier + (max_multiplier - min_multiplier) * charge
 
-        # Apply jump with multiplier
         base_jump_velocity = self.movement.jump_velocity
         self.movement.vy = base_jump_velocity * jump_multiplier
         self.movement.is_on_ground = False
 
         print(
-            f"Jumped with {charge_ratio * 100:.1f}% charge (multiplier: {jump_multiplier:.2f})"
+            f"Jumped with {charge * 100:.1f}% charge (multiplier: {jump_multiplier:.2f})"
         )
 
     def update(
@@ -110,19 +113,41 @@ class Potato(Observable):
         window_width: int,
         window_height: int,
     ) -> None:
+        was_on_ground = self.movement.is_on_ground
+
         self.handle_input_and_movement(delta_time)
+
+        # faz o quique com a mesma velocidade horizontal antes de colidir com a parede
+        vx_before_collision = self.movement.vx
 
         self.collision_handler.handle_collisions(
             self.transform, self.movement, tiles, delta_time
         )
 
+        if (
+            not self.movement.is_on_ground
+            and vx_before_collision != 0
+            and self.movement.vx == 0
+        ):
+            self.movement.vx = -vx_before_collision  # inverte
+            self.air_movement_disabled_by_wall = True  # trava o controle
+            self.facing_right = (
+                not self.facing_right
+            )  # espelha o personagem pra mostrar que ta indo pro outro lado
+
         self.movement.is_on_ground = self.collision_handler.check_on_ground(
             self.transform, tiles
         )
 
+        # reseta os controles travados de quando estava no ar se o personagem pousou
+        if not was_on_ground and self.movement.is_on_ground:
+            self.air_direction_locked = False
+            self.air_movement_disabled_by_wall = False
+
         boundary_hit = self.collision_handler.check_bounds(
             self.transform, self.movement, window_width, window_height
         )
+
         if boundary_hit:
             self.notify_observers(boundary_hit)
 
