@@ -60,6 +60,7 @@ class Game(Observer):
 
         self.window.set_background_color((0, 0, 0))
         self.level_slider = LevelSlider(self.window)
+
         self.current_state = GameState.PLAYING
 
     def _handle_pause_input(self) -> None:
@@ -95,17 +96,16 @@ class Game(Observer):
                 # Game
                 self.window.set_background_color((0, 0, 0))
                 self.level_slider.update(delta_time)
-                self.level_slider.draw(self.window)
+                self.level_slider.draw()
 
             elif self.current_state == GameState.PAUSED and self.level_slider:
                 self._handle_pause_input()
 
-                # Draw game in background (paused)
+                # desenha o jogo em background
                 self.window.set_background_color((0, 0, 0))
-                self.level_slider.draw(
-                    self.window
-                )  # Deixa desenhado esperando pra entrar mas não atualiza a tela até despausar
+                self.level_slider.draw()
 
+                # desenha o menu de pausa em cima
                 self.pause_menu.update(delta_time)
                 self.pause_menu.draw()
 

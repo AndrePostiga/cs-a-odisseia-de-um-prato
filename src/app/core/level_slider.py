@@ -3,13 +3,14 @@ from app.core.level import Level
 from app.core.observer import Observer
 from app.pplay.window import Window
 from app.entities.potato import Potato
+from app.ui.altitude_hud import AltitudeHUD
 
 
 class LevelSlider(Observer):
     def __init__(self, window: Window, start_level: int = 1):
         self.logger = logging.getLogger(__name__)
         self.window = window
-        self.max_level = 10
+        self.max_level = 5
         self.min_level = 1
         self.current_level_num = start_level
 
@@ -20,6 +21,9 @@ class LevelSlider(Observer):
         # Carregar apenas o nível atual
         self.current_level = self._create_level(self.current_level_num)
         self._add_player_to_current_level()
+
+        # HUD
+        self.altitude_hud = AltitudeHUD(self.window)
 
     def _create_level(self, level_num: int) -> Level:
         self.logger.info(f"Carregando nível {level_num}")
@@ -114,6 +118,13 @@ class LevelSlider(Observer):
 
     def update(self, delta_time: float) -> None:
         self.current_level.update(delta_time)
+        if self.main_character:
+            self.altitude_hud.update(
+                self.main_character,
+                self.current_level_num,
+                self.max_level,
+            )
 
-    def draw(self, window: Window) -> None:
+    def draw(self) -> None:
         self.current_level.draw()
+        self.altitude_hud.draw()

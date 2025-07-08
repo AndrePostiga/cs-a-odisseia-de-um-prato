@@ -31,6 +31,10 @@ class Potato(Observable):
 
         self.facing_right = True
 
+        # Modo de depuração
+        self.is_debug_mode = False
+        self.f1_key_pressed = False
+
         # Pulo
         self.is_charging_jump = False
         self.charge_time = 0.0
@@ -92,6 +96,27 @@ class Potato(Observable):
 
         self.animation_component.set_facing_direction(self.facing_right)
 
+    def handle_debug_movement(self, delta_time: float) -> None:
+        left, right, up, down = self.input_handler.get_debug_movement_input()
+
+        self.movement.vx = 0
+        self.movement.vy = 0
+
+        if left:
+            self.movement.set_horizontal_velocity(-1.0)
+            self.facing_right = False
+        elif right:
+            self.movement.set_horizontal_velocity(1.0)
+            self.facing_right = True
+
+        if up:
+            self.movement.vy = -self.movement.speed
+        elif down:
+            self.movement.vy = self.movement.speed
+
+        self.transform.x += self.movement.vx * delta_time
+        self.transform.y += self.movement.vy * delta_time
+
     def _execute_charged_jump(self):
         charge = self.charge_time / self.max_charge_time
         min_multiplier = 0.3
@@ -113,36 +138,50 @@ class Potato(Observable):
         window_width: int,
         window_height: int,
     ) -> None:
-        was_on_ground = self.movement.is_on_ground
 
-        self.handle_input_and_movement(delta_time)
+        f1_pressed = self.input_handler.get_toggle_debug_input()
+        if f1_pressed and not self.f1_key_pressed:
+            self.is_debug_mode = not self.is_debug_mode
+            self.logger.info(
+                f"Modo de depuração {'ativado' if self.is_debug_mode else 'desativado'}"
+            )
+            self.movement.vx = 0
+            self.movement.vy = 0
+        self.f1_key_pressed = f1_pressed
 
-        # faz o quique com a mesma velocidade horizontal antes de colidir com a parede
-        vx_before_collision = self.movement.vx
+        if self.is_debug_mode:
+            self.handle_debug_movement(delta_time)
+        else:
+            was_on_ground = self.movement.is_on_ground
 
-        self.collision_handler.handle_collisions(
-            self.transform, self.movement, tiles, delta_time
-        )
+            self.handle_input_and_movement(delta_time)
 
-        if (
-            not self.movement.is_on_ground
-            and vx_before_collision != 0
-            and self.movement.vx == 0
-        ):
-            self.movement.vx = -vx_before_collision  # inverte
-            self.air_movement_disabled_by_wall = True  # trava o controle
-            self.facing_right = (
-                not self.facing_right
-            )  # espelha o personagem pra mostrar que ta indo pro outro lado
+            # faz o quique com a mesma velocidade horizontal antes de colidir com a parede
+            vx_before_collision = self.movement.vx
 
-        self.movement.is_on_ground = self.collision_handler.check_on_ground(
-            self.transform, tiles
-        )
+            self.collision_handler.handle_collisions(
+                self.transform, self.movement, tiles, delta_time
+            )
 
-        # reseta os controles travados de quando estava no ar se o personagem pousou
-        if not was_on_ground and self.movement.is_on_ground:
-            self.air_direction_locked = False
-            self.air_movement_disabled_by_wall = False
+            if (
+                not self.movement.is_on_ground
+                and vx_before_collision != 0
+                and self.movement.vx == 0
+            ):
+                self.movement.vx = -vx_before_collision  # inverte
+                self.air_movement_disabled_by_wall = True  # trava o controle
+                self.facing_right = (
+                    not self.facing_right
+                )  # espelha o personagem pra mostrar que ta indo pro outro lado
+
+            self.movement.is_on_ground = self.collision_handler.check_on_ground(
+                self.transform, tiles
+            )
+
+            # reseta os controles travados de quando estava no ar se o personagem pousou
+            if not was_on_ground and self.movement.is_on_ground:
+                self.air_direction_locked = False
+                self.air_movement_disabled_by_wall = False
 
         boundary_hit = self.collision_handler.check_bounds(
             self.transform, self.movement, window_width, window_height
