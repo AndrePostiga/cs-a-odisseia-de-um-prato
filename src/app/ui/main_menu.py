@@ -23,12 +23,12 @@ class MainMenu(Observer, Observable):
         self.background.y = 0
 
         # Buttons
-        button_width = 200
-        button_height = 60
-        button_spacing = 80
+        button_width = 256
+        button_height = 128
+        button_spacing = 40
 
-        center_x = (window.width - button_width) // 2
-        start_y = (window.height - (2 * button_height + button_spacing)) // 2
+        center_x = (window.width / 9) - (button_width / 2)
+        start_y = (window.height * 1 / 4.5) + ((button_height) * 0.5)
 
         self.play_button = MenuButton(
             asset_path("images", "play_button.png"),

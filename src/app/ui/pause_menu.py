@@ -22,9 +22,9 @@ class PauseMenu(Observer, Observable):
         self.overlay.height = window.height
 
         # Calculate button positions (centered)
-        button_width = 200
-        button_height = 60
-        button_spacing = 80
+        button_width = 256
+        button_height = 128
+        button_spacing = 40
 
         center_x = (window.width - button_width) // 2
         start_y = (window.height - (3 * button_height + 2 * button_spacing)) // 2
@@ -108,17 +108,11 @@ class PauseMenu(Observer, Observable):
 
         # Draw title last (foreground) so it appears on top
         title_text = "JOGO PAUSADO"
-        # Calculate center position for title more precisely
-        # Estimate text width: roughly 12 pixels per character at size 48
-        text_width = len(title_text) * 28  # More accurate estimation for size 48
+        # Use pygame.font to get the real width of the rendered text
+        font = pygame.font.SysFont("Segoe UI", 48, bold=True)
+        text_surface = font.render(title_text, True, (255, 255, 255))
+        text_width = text_surface.get_width()
         title_x = (self.window.width - text_width) // 2  # Perfect centering
         title_y = self.start_y - 100  # Position above buttons with proper spacing
-        self.window.draw_text(
-            title_text,
-            title_x,
-            title_y,
-            size=48,
-            color=(255, 255, 255),
-            font_name="Arial",
-            bold=True,
-        )
+        # Draw using pygame directly for perfect alignment
+        self.window.get_screen().blit(text_surface, (title_x, title_y))
