@@ -134,6 +134,15 @@ class Window:
         self.title = title
         pygame.display.set_caption(title)
 
+    def set_icon(self, icon_path):
+        """Sets the window icon."""
+        try:
+            icon_surface = pygame.image.load(icon_path)
+            pygame.display.set_icon(icon_surface)
+        except pygame.error as e:
+            print(f"Couldn't load icon: {icon_path}")
+            print(e)
+
     """Gets the title of the Window"""
 
     def get_title(self):

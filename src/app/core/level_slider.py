@@ -1,21 +1,23 @@
 import logging
 from typing import Set
 from app.core.level import Level
-from app.core.observer import Observer
+from app.core.observer import Observer, Observable
 from app.pplay.window import Window
 from app.entities.potato import Potato
 from app.ui.altitude_hud import AltitudeHUD
 from app.ui.rescued_friends_hud import RescuedFriendsHUD
 
 
-class LevelSlider(Observer):
+class LevelSlider(Observer, Observable):
     def __init__(self, window: Window, start_level: int = 1):
+        Observable.__init__(self)
         self.logger = logging.getLogger(__name__)
         self.window = window
-        self.max_level = 9
+        self.max_level = 8
         self.min_level = 1
         self.current_level_num = start_level
         self.rescued_characters: Set[str] = set()
+        self.ended = False
 
         # Criar personagem principal
         self.main_character = Potato(900, 600)
@@ -56,7 +58,9 @@ class LevelSlider(Observer):
     def slide_next(self) -> None:
         next_level_num = self.current_level_num + 1
         if next_level_num > self.max_level:
-            self.logger.info("Já está no último nível, não pode avançar.")
+            self.logger.info("Último nível concluído! Fim de jogo.")
+            self.notify_observers("game_won")
+            self.ended = True
             return
 
         # Guardar velocidades do jogador para manter o movimento
@@ -128,6 +132,10 @@ class LevelSlider(Observer):
         self._add_player_to_current_level()
 
     def update(self, delta_time: float) -> None:
+        if self.ended:
+            self.logger.info("O jogo já terminou, indo pra cena final.")
+            return
+
         self.current_level.update(delta_time)
         self.altitude_hud.update(
             self.main_character, self.current_level_num, self.max_level

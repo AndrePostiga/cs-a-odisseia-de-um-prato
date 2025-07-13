@@ -8,6 +8,7 @@ from app.ui.main_menu import MainMenu
 from app.ui.pause_menu import PauseMenu
 from app.core.observer import Observer
 from app.seedwork.path_helper import asset_path
+from app.core.end_game_state import EndGameState
 
 
 class Game(Observer):
@@ -33,6 +34,9 @@ class Game(Observer):
         # Levels
         self.level_slider: Optional[LevelSlider] = None
 
+        # End Game
+        self.end_game_state: Optional[EndGameState] = None
+
         # Pause
         self.esc_pressed = False
 
@@ -52,6 +56,23 @@ class Game(Observer):
             self.current_state = GameState.MENU
             self.level_slider = None
             self.logger.info("Returned to main menu")
+        elif message == "game_won":
+            self.game_music.stop()
+            if self.level_slider:
+                rescued_characters = self.level_slider.rescued_characters
+                self.end_game_state = EndGameState(self.window, rescued_characters)
+                self.end_game_state.add_observer(self)
+                self.current_state = GameState.GAME_WON
+                self.level_slider = None
+                self.logger.info("Game won!")
+        elif message == "RESTART_GAME":
+            self.end_game_state = None
+            self.current_state = GameState.MENU
+            self.menu.start_music()
+            self.logger.info("Restarting game, returning to main menu.")
+        elif message == "EXIT_GAME":
+            self.running = False
+            self.logger.info("Exiting game.")
 
     def _start_game(self) -> None:
         self.logger.info("Starting game")
@@ -60,6 +81,7 @@ class Game(Observer):
 
         self.window.set_background_color((0, 0, 0))
         self.level_slider = LevelSlider(self.window)
+        self.level_slider.add_observer(self)
 
         self.current_state = GameState.PLAYING
 
@@ -89,24 +111,24 @@ class Game(Observer):
             if self.current_state == GameState.MENU:
                 self.menu.update(delta_time)
                 self.menu.draw()
-
-            elif self.current_state == GameState.PLAYING and self.level_slider:
-                self._handle_pause_input()
-
-                # Game
-                self.window.set_background_color((0, 0, 0))
-                self.level_slider.update(delta_time)
-                self.level_slider.draw()
-
-            elif self.current_state == GameState.PAUSED and self.level_slider:
-                self._handle_pause_input()
-
-                # desenha o jogo em background
-                self.window.set_background_color((0, 0, 0))
-                self.level_slider.draw()
-
-                # desenha o menu de pausa em cima
-                self.pause_menu.update(delta_time)
-                self.pause_menu.draw()
+            elif self.current_state == GameState.GAME_WON:
+                if self.end_game_state:
+                    self.end_game_state.update(delta_time)
+                    self.end_game_state.draw()
+            elif self.current_state == GameState.PLAYING:
+                if self.level_slider:
+                    self._handle_pause_input()
+                    self.window.set_background_color((0, 0, 0))
+                    self.level_slider.update(delta_time)
+                    # A verificação é necessária porque o update pode ter mudado o estado
+                    if self.current_state == GameState.PLAYING:
+                        self.level_slider.draw()
+            elif self.current_state == GameState.PAUSED:
+                if self.level_slider:
+                    self._handle_pause_input()
+                    self.window.set_background_color((0, 0, 0))
+                    self.level_slider.draw()
+                    self.pause_menu.update(delta_time)
+                    self.pause_menu.draw()
 
             self.window.update()
