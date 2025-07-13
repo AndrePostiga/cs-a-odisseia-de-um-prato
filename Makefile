@@ -88,7 +88,13 @@ build:
 	-@$(DEL_FILE) "A Odisseia de um Prato.spec"
 	-@$(RM_RF) dist
 	-@$(RM_RF) build
-	$(POETRY) run pyinstaller --name "A Odisseia de um Prato" --windowed --add-data "assets:assets" src/app/main.py
+ifeq ($(OS),Windows_NT)
+	@echo "   -> Using Windows configuration (.ico icon)"
+	$(POETRY) run pyinstaller --name "A Odisseia de um Prato" --windowed --add-data "assets;assets" --icon="assets/icons/potato_icon.ico" src/app/main.py
+else
+	@echo "   -> Using Unix configuration (.icns icon)"
+	$(POETRY) run pyinstaller --name "A Odisseia de um Prato" --windowed --add-data "assets:assets" --icon="assets/icons/potato_icon.icns" src/app/main.py
+endif
 
 clean:
 ifeq ($(OS),Windows_NT)
