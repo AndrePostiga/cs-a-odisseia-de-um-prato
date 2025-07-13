@@ -1,7 +1,7 @@
 POETRY := $(HOME)/.local/bin/poetry
 POETRY_URL := https://install.python-poetry.org
 
-.PHONY: setup install run shell test lint format typecheck clean
+.PHONY: setup install run shell test lint format typecheck clean build
 
 setup:
 	@echo "🔍 Checking for Poetry installation..."
@@ -45,7 +45,12 @@ typecheck:
 	@echo "🔎 Checking types..."
 	$(POETRY) run mypy src/
 
+build:
+	@echo "📦 Building game for distribution..."
+	@rm -rf dist build "A Odisseia de um Prato.spec"
+	$(POETRY) run pyinstaller --name "A Odisseia de um Prato" --windowed --add-data "assets:assets" src/app/main.py
+
 clean:
 	@echo "🗑 Cleaning caches and temp files..."
 	@find . -type d -name "__pycache__" -prune -exec rm -rf {} +
-	@rm -rf __pycache__ .pytest_cache .ruff_cache .mypy_cache .coverage .venv 
+	@rm -rf __pycache__ .pytest_cache .ruff_cache .mypy_cache .coverage .venv dist build "A Odisseia de um Prato.spec"
