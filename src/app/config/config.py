@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 import os
 import pathlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -18,9 +21,9 @@ class Config:
 
         if dotenv_path.exists():
             load_dotenv(dotenv_path)
-            print(f"Loaded .env from: {dotenv_path}")
+            logger.info(f"Loaded .env from: {dotenv_path}")
         else:
-            print(f"Warning: .env file not found at {dotenv_path}")
+            logger.warning(f".env file not found at {dotenv_path}")
             load_dotenv()
 
         return cls(

@@ -2,21 +2,23 @@ from app.pplay.sprite import Sprite
 from app.pplay.window import Window
 from app.entities.potato import Potato
 from app.seedwork.path_helper import asset_path
+import logging
 
 
 class AltitudeHUD:
     def __init__(self, window: Window):
         self.window = window
         self.is_visible = True
+        self.logger = logging.getLogger(__name__)
 
         try:
             self.ruler_image = Sprite(asset_path("images", "hud", "ruler.png"))
             self.icon_image = Sprite(asset_path("images", "hud", "potato_icon.png"))
-        except Exception as e:
-            print(
-                "ERRO: Não foi possível carregar as imagens do HUD. Verifique os caminhos."
+        except Exception:
+            self.logger.error(
+                "ERRO: Não foi possível carregar as imagens do HUD. Verifique os caminhos.",
+                exc_info=True,
             )
-            print(f"Detalhe: {e}")
             self.is_visible = False
             return
 

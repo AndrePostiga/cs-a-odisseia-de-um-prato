@@ -3,6 +3,9 @@ from app.components.transform import Transform
 from app.components.render import Render
 from pygame.surface import Surface
 from pygame.sprite import Sprite
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Tile(Sprite):
@@ -27,7 +30,9 @@ class Tile(Sprite):
         if window.screen is None:
             raise NotImplementedError("Window is None or not initialized")
 
-        print("Drawing tile at position:", self.transform.x, self.transform.y)
+        logger.info(
+            "Drawing tile at position: %s, %s", self.transform.x, self.transform.y
+        )
         self.render_component.draw(window, self.transform)
 
     # Properties for backward compatibility

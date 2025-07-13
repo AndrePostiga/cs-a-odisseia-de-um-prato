@@ -1,9 +1,11 @@
 import logging
+from typing import Set
 from app.core.level import Level
 from app.core.observer import Observer
 from app.pplay.window import Window
 from app.entities.potato import Potato
 from app.ui.altitude_hud import AltitudeHUD
+from app.ui.rescued_friends_hud import RescuedFriendsHUD
 
 
 class LevelSlider(Observer):
@@ -13,9 +15,10 @@ class LevelSlider(Observer):
         self.max_level = 9
         self.min_level = 1
         self.current_level_num = start_level
+        self.rescued_characters: Set[str] = set()
 
         # Criar personagem principal
-        self.main_character = Potato(300, 300)
+        self.main_character = Potato(900, 600)
         self.main_character.add_observer(self)
 
         # Carregar apenas o nível atual
@@ -24,10 +27,12 @@ class LevelSlider(Observer):
 
         # HUD
         self.altitude_hud = AltitudeHUD(self.window)
+        self.rescued_friends_hud = RescuedFriendsHUD(self.window)
+        self.main_character.add_observer(self.rescued_friends_hud)
 
     def _create_level(self, level_num: int) -> Level:
         self.logger.info(f"Carregando nível {level_num}")
-        return Level(self.window, level_num)
+        return Level(self.window, level_num, self.rescued_characters)
 
     def _add_player_to_current_level(self) -> None:
         self.logger.info(
@@ -41,6 +46,12 @@ class LevelSlider(Observer):
             self.slide_next()
         elif message == "hit_bottom_wall":
             self.slide_previous()
+        elif message.startswith("rescued_"):
+            character_name = message.replace("rescued_", "")
+            self.rescued_characters.add(character_name)
+            self.logger.info(
+                f"Rescued character '{character_name}' state saved in LevelSlider."
+            )
 
     def slide_next(self) -> None:
         next_level_num = self.current_level_num + 1
@@ -118,13 +129,11 @@ class LevelSlider(Observer):
 
     def update(self, delta_time: float) -> None:
         self.current_level.update(delta_time)
-        if self.main_character:
-            self.altitude_hud.update(
-                self.main_character,
-                self.current_level_num,
-                self.max_level,
-            )
+        self.altitude_hud.update(
+            self.main_character, self.current_level_num, self.max_level
+        )
 
     def draw(self) -> None:
         self.current_level.draw()
         self.altitude_hud.draw()
+        self.rescued_friends_hud.draw()

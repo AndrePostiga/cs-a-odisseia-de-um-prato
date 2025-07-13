@@ -10,6 +10,9 @@ from app.components.render import Render
 from app.core.collision_system import CollisionHandler
 from typing import List
 import logging
+from pygame.sprite import spritecollide
+import pygame
+from app.entities.idle_character import IdleCharacter
 
 
 class Potato(Observable):
@@ -18,7 +21,7 @@ class Potato(Observable):
         Observable.__init__(self)
 
         # Inicializa componentes
-        self.animation_component = AnimationComponent()
+        self.animation_component = AnimationComponent("potato")
         first_frame = self.animation_component.get_current_frame()
         width = first_frame.get_width()
         height = first_frame.get_height()
@@ -29,6 +32,12 @@ class Potato(Observable):
         self.renderer = Render(self.animation_component)
         self.collision_handler = CollisionHandler()
 
+        self.rect = pygame.Rect(
+            self.transform.x,
+            self.transform.y,
+            self.transform.width,
+            self.transform.height,
+        )
         self.facing_right = True
 
         # Modo de depuração
@@ -118,6 +127,7 @@ class Potato(Observable):
         self.transform.y += self.movement.vy * delta_time
 
     def _execute_charged_jump(self):
+        self.logger.info(f"x:{self.transform.x} y:{self.transform.y}")
         charge = self.charge_time / self.max_charge_time
         min_multiplier = 0.3
         max_multiplier = 2.0
@@ -127,9 +137,17 @@ class Potato(Observable):
         self.movement.vy = base_jump_velocity * jump_multiplier
         self.movement.is_on_ground = False
 
-        print(
+        self.logger.info(
             f"Jumped with {charge * 100:.1f}% charge (multiplier: {jump_multiplier:.2f})"
         )
+
+    def check_friend_collision(self, idle_characters: pygame.sprite.Group):
+        collided_friends = spritecollide(self, idle_characters, True)
+        for friend in collided_friends:
+            if isinstance(friend, IdleCharacter):
+                self.notify_observers(
+                    f"rescued_{friend.animation_component.character_name}"
+                )
 
     def update(
         self,
@@ -137,8 +155,8 @@ class Potato(Observable):
         tiles: List[Tile],
         window_width: int,
         window_height: int,
+        idle_characters: pygame.sprite.Group,
     ) -> None:
-
         f1_pressed = self.input_handler.get_toggle_debug_input()
         if f1_pressed and not self.f1_key_pressed:
             self.is_debug_mode = not self.is_debug_mode
@@ -182,6 +200,10 @@ class Potato(Observable):
             if not was_on_ground and self.movement.is_on_ground:
                 self.air_direction_locked = False
                 self.air_movement_disabled_by_wall = False
+
+        self.rect.topleft = (self.transform.x, self.transform.y)
+
+        self.check_friend_collision(idle_characters)
 
         boundary_hit = self.collision_handler.check_bounds(
             self.transform, self.movement, window_width, window_height

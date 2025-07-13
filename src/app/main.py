@@ -2,13 +2,15 @@ from app.config.log_config import setup_logging
 from app.config.config import Config
 from app.pplay.window import Window
 from app.core.game import Game
+import logging
 
 
 def main() -> None:
     setup_logging()
+    logger = logging.getLogger(__name__)
 
     config = Config.load()
-    print(f"Configuration loaded: {config}")
+    logger.info(f"Configuration loaded: {config}")
 
     window = Window(
         width=config.WINDOW_WIDTH,

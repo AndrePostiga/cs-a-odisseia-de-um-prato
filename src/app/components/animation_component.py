@@ -5,7 +5,8 @@ from app.seedwork.path_helper import asset_path
 
 
 class AnimationComponent:
-    def __init__(self, scale: float = 1.5):
+    def __init__(self, character_name: str, scale: float = 1.5):
+        self.character_name = character_name
         self.scale = scale
         self.state = AnimationState.IDLE
         self.facing_right = True
@@ -15,36 +16,43 @@ class AnimationComponent:
         image_path = asset_path(*path_parts)
         image = pygame.image.load(image_path).convert_alpha()
         scaled_image = pygame.transform.scale(
-            image, (image.get_width() * scale, image.get_height() * scale)
+            image,
+            (int(image.get_width() * scale), int(image.get_height() * scale)),
         )
         return scaled_image
 
     def _create_animator(self) -> Animator:
-        idle = [
-            self._load_image_and_scale(
-                self.scale, "images", "characters", "potato", "idle", f"{i}.png"
-            )
-            for i in range(1, 6)
-        ]
-        run = [
-            self._load_image_and_scale(
-                self.scale, "images", "characters", "potato", "run", f"{i}.png"
-            )
-            for i in range(1, 5)
-        ]
-        jump = [
-            self._load_image_and_scale(
-                self.scale, "images", "characters", "potato", "jump", "1.png"
-            )
-        ]
+        animations = {}
 
-        return Animator(
-            {
-                AnimationState.IDLE: AnimationData(frames=idle, frame_duration=0.1),
-                AnimationState.RUN: AnimationData(frames=run, frame_duration=0.2),
-                AnimationState.JUMP: AnimationData(frames=jump, frame_duration=0.3),
-            }
-        )
+        # Mapeia estados de animação para pastas e contagens de frames
+        animation_map = {
+            "potato": {
+                AnimationState.IDLE: ("idle", 6),
+                AnimationState.RUN: ("run", 5),
+                AnimationState.JUMP: ("jump", 1),
+            },
+            "butter": {AnimationState.IDLE: ("idle", 5)},
+            "cheese": {AnimationState.IDLE: ("idle", 5)},
+            "dried_meat": {AnimationState.IDLE: ("idle", 5)},
+            "milk": {AnimationState.IDLE: ("idle", 5)},
+        }
+
+        char_animations = animation_map.get(self.character_name, {})
+
+        for state, (folder, frame_count) in char_animations.items():
+            path_parts = ["images", "characters", self.character_name, folder]
+
+            frames = [
+                self._load_image_and_scale(self.scale, *path_parts, f"{i}.png")
+                for i in range(1, frame_count + 1)
+            ]
+
+            frame_duration = 0.1 if state == AnimationState.IDLE else 0.2
+            animations[state] = AnimationData(
+                frames=frames, frame_duration=frame_duration
+            )
+
+        return Animator(animations)
 
     def change_state(self, new_state: AnimationState) -> None:
         if new_state != self.state:

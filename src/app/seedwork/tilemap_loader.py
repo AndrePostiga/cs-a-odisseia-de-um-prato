@@ -7,11 +7,14 @@ from pytmx import TiledTileLayer, TiledObjectGroup, TiledImageLayer, TiledMap
 from app.entities.tile import Tile
 from app.entities.background_tile import BackgroundTile
 from app.core.tilemap_group import TilemapGroup
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_tilemap_groups(map_name: str) -> List[Tuple[TilemapGroup, Group]]:
     map_path = asset_path("tilemaps", f"{map_name}.tmx")
-    print(f"Loading tilemap from: {map_path}")
+    logger.info(f"Loading tilemap from: {map_path}")
     map_data = load_pygame(map_path)
 
     ordered_groups: List[Tuple[TilemapGroup, Group]] = []
