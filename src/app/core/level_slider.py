@@ -10,7 +10,7 @@ class LevelSlider(Observer):
     def __init__(self, window: Window, start_level: int = 1):
         self.logger = logging.getLogger(__name__)
         self.window = window
-        self.max_level = 5
+        self.max_level = 9
         self.min_level = 1
         self.current_level_num = start_level
 
