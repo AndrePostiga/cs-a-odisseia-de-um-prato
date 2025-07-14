@@ -20,16 +20,24 @@ class RescuedFriendsHUD(Observer):
 
     def on_notification(self, message: str) -> None:
         if message.startswith("rescued_"):
-            character_name = message.split("_")[1]
+            character_name = message[len("rescued_"):]
             if character_name in self.character_order:
                 self.rescued_friends.add(character_name)
-
+    
     def _load_icons(self) -> dict[str, pygame.Surface]:
-        # Por enquanto, usamos o mesmo ícone para todos
-        icon_path = asset_path("images", "hud", "potato_icon.png")
-        icon = pygame.image.load(icon_path).convert_alpha()
-        scaled_icon = pygame.transform.scale(icon, (48, 48))
-        return {name: scaled_icon for name in self.character_order}
+        icon_files = {
+            "butter": "butter_icon.png",
+            "cheese": "cheese_icon.png",
+            "dried_meat": "dried_meat_icon.png",
+            "milk": "milk_icon.png",
+        }
+        icons = {}
+        for name, filename in icon_files.items():
+            icon_path = asset_path("images", "hud", filename)
+            icon = pygame.image.load(icon_path).convert_alpha()
+            scaled_icon = pygame.transform.scale(icon, (48, 48))
+            icons[name] = scaled_icon
+        return icons
 
     def _grayscale(self, surface: pygame.Surface) -> pygame.Surface:
         gray_surface = surface.copy()
