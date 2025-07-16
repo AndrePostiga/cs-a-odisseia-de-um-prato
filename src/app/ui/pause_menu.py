@@ -41,25 +41,33 @@ class PauseMenu(Observer, Observable):
             "continue_game",
         )
 
+        self.options_button = MenuButton(
+            asset_path("images", "options_button2.png"),
+            center_x,
+            start_y + button_height + button_spacing,
+            "open_options",
+        )
+
         self.main_menu_button = MenuButton(
             asset_path("images", "main_menu_button.png"),
             center_x,
-            start_y + button_height + button_spacing,
+            start_y + 2 * (button_height + button_spacing),
             "main_menu",
         )
 
         self.exit_button = MenuButton(
             asset_path("images", "exit_button.png"),
             center_x,
-            start_y + 2 * (button_height + button_spacing),
+            start_y + 3 * (button_height + button_spacing),
             "exit_game",
         )
 
         self.continue_button.add_observer(self)
+        self.options_button.add_observer(self)
         self.main_menu_button.add_observer(self)
         self.exit_button.add_observer(self)
 
-        self.buttons = [self.continue_button, self.main_menu_button, self.exit_button]
+        self.buttons = [self.continue_button, self.options_button, self.main_menu_button, self.exit_button]
         self.mouse_clicked = False
 
         self.logger.info("PauseMenu initialized")
@@ -70,6 +78,9 @@ class PauseMenu(Observer, Observable):
         if message == "continue_game":
             self.logger.info("Continue button clicked")
             self.notify_observers("continue_game")
+        elif message == "open_options":
+            self.logger.info("Options button clicked")
+            self.notify_observers("open_options")
         elif message == "main_menu":
             self.logger.info("Main menu button clicked")
             self.notify_observers("main_menu")

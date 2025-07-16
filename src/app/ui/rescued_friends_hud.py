@@ -9,7 +9,7 @@ class RescuedFriendsHUD(Observer):
     def __init__(self, window: Window):
         self.window = window
         self.font_size = 24
-        self.font_name = "Arial"
+        self.font_name = "Segoe UI"
         self.text_color = (255, 255, 255)
         self.character_order = ["butter", "cheese", "dried_meat", "milk"]
         self.rescued_friends: Set[str] = set()
@@ -54,7 +54,7 @@ class RescuedFriendsHUD(Observer):
 
         text_content = "Amigos Resgatados"
         icon_height = 48
-        space_between = 5
+        space_between = 15
         total_hud_height = self.font_size + space_between + icon_height
 
         margin_bottom = 20
@@ -71,7 +71,7 @@ class RescuedFriendsHUD(Observer):
         )
 
         # desenha os ícones abaixo do texto
-        start_x = text_x
+        start_x = text_x - 5
         icon_y = text_y + self.font_size + space_between
 
         for i, name in enumerate(self.character_order):

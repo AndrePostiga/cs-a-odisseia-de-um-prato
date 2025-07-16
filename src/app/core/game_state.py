@@ -7,3 +7,4 @@ class GameState(Enum):
     PAUSED = "paused"
     GAME_OVER = "game_over"
     GAME_WON = "game_won"
+    OPTIONS = "options"

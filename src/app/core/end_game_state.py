@@ -39,7 +39,7 @@ class EndGameState(Observable, Observer):
         all_possible_friends = {"butter", "cheese", "dried_meat", "milk"}
         if len(rescued_characters) < len(all_possible_friends):
             text = f"Amigos resgatados: {len(rescued_characters)}/{len(all_possible_friends)}"
-            font = pygame.font.SysFont("Arial", 36, bold=True)
+            font = pygame.font.SysFont("Segoe UI", 36, bold=True)
             text_surface = font.render(text, True, (255, 255, 255))
             x = self.window.width / 2 - text_surface.get_width() / 2
             y = self.window.height - 250

@@ -8,13 +8,13 @@ from app.core.observer import Observer, Observable
 
 
 class MainMenu(Observer, Observable):
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, initial_volume: int = 5):
         Observable.__init__(self)
         self.logger = logging.getLogger(__name__)
         self.window = window
 
         self.menu_music = Sound(asset_path("musics", "menu.mp3"))
-        self.menu_music.set_volume(30)
+        self.menu_music.set_volume(initial_volume)
         self.menu_music.set_repeat(True)
 
         # Background
@@ -37,18 +37,26 @@ class MainMenu(Observer, Observable):
             "start_game",  # Mensagem a notificar
         )
 
+        self.options_button = MenuButton(
+            asset_path("images", "options_button.png"),
+            center_x,
+            start_y + button_height + button_spacing,
+            "open_options",  # Mensagem a notificar
+        )
+
         self.quit_button = MenuButton(
             asset_path("images", "quit_button.png"),
             center_x,
-            start_y + button_height + button_spacing,
+            start_y + 2 * (button_height + button_spacing),
             "quit_game",  # Mensagem a notificar
         )
 
         # Registro dos observadores
         self.play_button.add_observer(self)
+        self.options_button.add_observer(self)
         self.quit_button.add_observer(self)
 
-        self.buttons = [self.play_button, self.quit_button]
+        self.buttons = [self.play_button, self.options_button, self.quit_button]
         self.mouse_clicked = False
 
         self.logger.info("Main menu initialized")
@@ -68,6 +76,9 @@ class MainMenu(Observer, Observable):
         if message == "start_game":
             self.logger.info("Play button clicked")
             self.notify_observers("start_game")
+        elif message == "open_options":
+            self.logger.info("Options button clicked")
+            self.notify_observers("open_options")
         elif message == "quit_game":
             self.logger.info("Quit button clicked")
             self.window.close()

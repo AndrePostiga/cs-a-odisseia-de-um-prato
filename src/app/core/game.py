@@ -6,6 +6,7 @@ from app.core.level_slider import LevelSlider
 from app.core.game_state import GameState
 from app.ui.main_menu import MainMenu
 from app.ui.pause_menu import PauseMenu
+from app.ui.options_menu import OptionsMenu
 from app.core.observer import Observer
 from app.seedwork.path_helper import asset_path
 from app.core.end_game_state import EndGameState
@@ -19,17 +20,22 @@ class Game(Observer):
         self.current_state = GameState.MENU
         self.logger.info("Game initialized")
 
+        # Volume global do jogo
+        self.current_volume = 5
+
         self.game_music = Sound(asset_path("musics", "game.mp3"))
-        self.game_music.set_volume(25)
+        self.game_music.set_volume(self.current_volume)
         self.game_music.set_repeat(True)
 
         # Menus
-        self.menu = MainMenu(window)
+        self.menu = MainMenu(window, initial_volume=self.current_volume)
         self.pause_menu = PauseMenu(window)
+        self.options_menu = OptionsMenu(window, initial_volume=self.current_volume)
 
         # Observers
         self.menu.add_observer(self)
         self.pause_menu.add_observer(self)
+        self.options_menu.add_observer(self)
 
         # Levels
         self.level_slider: Optional[LevelSlider] = None
@@ -70,6 +76,19 @@ class Game(Observer):
             self.current_state = GameState.MENU
             self.menu.start_music()
             self.logger.info("Restarting game, returning to main menu.")
+        elif message == "open_options":
+            self.previous_state = self.current_state  # Salva de onde veio
+            self.current_state = GameState.OPTIONS
+        elif isinstance(message, tuple) and message[0] == "set_volume":
+            self.current_volume = message[1]
+            self.menu.menu_music.set_volume(self.current_volume)
+            self.game_music.set_volume(self.current_volume)
+        elif message == "back_from_options":
+            # Volta para o menu ou pause dependendo do estado anterior
+            if self.level_slider and self.current_state == GameState.OPTIONS:
+                self.current_state = GameState.PAUSED
+            else:
+                self.current_state = GameState.MENU
         elif message == "EXIT_GAME":
             self.running = False
             self.logger.info("Exiting game.")
@@ -100,6 +119,12 @@ class Game(Observer):
                 self.logger.info("Game resumed")
 
         self.esc_pressed = esc_currently_pressed
+    
+    def draw_game(self):
+        # Desenhe tudo do jogo aqui (mapa, personagens, HUD, etc.)
+        if self.level_slider:
+            self.level_slider.draw()
+        # Adicione outros elementos do jogo conforme necessário
 
     def run(self) -> None:
         self.logger.info("Starting game loop")
@@ -130,5 +155,13 @@ class Game(Observer):
                     self.level_slider.draw()
                     self.pause_menu.update(delta_time)
                     self.pause_menu.draw()
+            elif self.current_state == GameState.OPTIONS:
+                if hasattr(self, "previous_state") and self.previous_state == GameState.PAUSED:
+                    self.draw_game()  # Desenha o jogo pausado
+                elif hasattr(self, "previous_state") and self.previous_state == GameState.MENU:
+                    self.menu.draw()  # Desenha o menu principal
+                self.options_menu.volume = self.current_volume
+                self.options_menu.update(delta_time)
+                self.options_menu.draw()
 
             self.window.update()
