@@ -41,7 +41,9 @@ class Window:
         # Creates the screen (pygame.Surface)
         # There are some useful flags (look pygame's docs)
         # It's like a static attribute in Java
-        Window.screen = pygame.display.set_mode([self.width, self.height])
+        Window.screen = pygame.display.set_mode(
+            [self.width, self.height], pygame.FULLSCREEN | pygame.SCALED
+        )
         # ? Why is it possible to do w.screen?
 
         # Sets pattern starting conditions
@@ -133,6 +135,15 @@ class Window:
     def set_title(self, title):
         self.title = title
         pygame.display.set_caption(title)
+
+    def set_icon(self, icon_path):
+        """Sets the window icon."""
+        try:
+            icon_surface = pygame.image.load(icon_path)
+            pygame.display.set_icon(icon_surface)
+        except pygame.error as e:
+            print(f"Couldn't load icon: {icon_path}")
+            print(e)
 
     """Gets the title of the Window"""
 

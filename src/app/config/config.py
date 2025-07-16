@@ -1,21 +1,34 @@
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import os
+import pathlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class Config:
-    WINDOW_WIDTH: int = 1024
-    WINDOW_HEIGHT: int = 768
+    WINDOW_WIDTH: int = 1920
+    WINDOW_HEIGHT: int = 1080
     FPS: int = 60
     WINDOW_TITLE: str = "A Odisséia de um Prato"
 
     @classmethod
     def load(cls) -> "Config":
-        load_dotenv()
+        project_root = pathlib.Path(__file__).parent.parent.parent.parent
+        dotenv_path = project_root / ".env"
+
+        if dotenv_path.exists():
+            load_dotenv(dotenv_path)
+            logger.info(f"Loaded .env from: {dotenv_path}")
+        else:
+            logger.warning(f".env file not found at {dotenv_path}")
+            load_dotenv()
+
         return cls(
-            WINDOW_WIDTH=int(os.getenv("WINDOW_WIDTH", 1024)),
-            WINDOW_HEIGHT=int(os.getenv("WINDOW_HEIGHT", 720)),
+            WINDOW_WIDTH=int(os.getenv("WINDOW_WIDTH", 1920)),
+            WINDOW_HEIGHT=int(os.getenv("WINDOW_HEIGHT", 1080)),
             FPS=int(os.getenv("FPS", 60)),
-            WINDOW_TITLE=os.getenv("WINDOW_TITLE", "Pong Game"),
+            WINDOW_TITLE=os.getenv("WINDOW_TITLE", "A Odisséia de um Prato"),
         )

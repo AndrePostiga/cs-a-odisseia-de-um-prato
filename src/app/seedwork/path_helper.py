@@ -1,24 +1,38 @@
+import sys
 from pathlib import Path
 
-# Root path of the project using Path for better cross-platform compatibility
-ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
-ASSETS_DIR = ROOT_DIR / "assets"
+
+def get_assets_dir() -> Path:
+    """
+    Retorna o caminho para a pasta de assets, funcionando tanto em modo de
+    desenvolvimento quanto empacotado com PyInstaller.
+    """
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        # Rodando em um bundle PyInstaller
+        # Os assets são colocados na pasta 'assets' dentro do diretório temporário
+        return Path(sys._MEIPASS) / "assets"
+    else:
+        # Rodando em modo de desenvolvimento
+        # O ROOT_DIR é a raiz do projeto
+        ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
+        return ROOT_DIR / "assets"
 
 
 def asset_path(*paths: str) -> str:
     """
-    Build full path to an asset file.
+    Monta o caminho absoluto para um asset.
 
     Args:
-        *paths: Variable number of path segments to join
+        *paths: Segmentos do caminho para juntar.
 
     Returns:
-        str: Absolute path to the asset
+        str: Caminho absoluto para o asset.
 
     Raises:
-        FileNotFoundError: If the asset path doesn't exist
+        FileNotFoundError: Se o caminho do asset não existir.
     """
-    full_path = ASSETS_DIR.joinpath(*paths)
+    assets_dir = get_assets_dir()
+    full_path = assets_dir.joinpath(*paths)
     if not full_path.exists():
         raise FileNotFoundError(f"Asset not found: {full_path}")
 
