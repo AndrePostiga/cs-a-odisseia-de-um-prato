@@ -62,7 +62,7 @@ class EndGameState(Observable, Observer):
         for name in rescued_characters:
             characters_to_create.append(
                 JumpingCharacter(
-                    asset_path("images", "characters", name, "idle", "1.png"), 0, 0
+                    asset_path("images", "characters", name, "idle", "7.png"), 0, 0
                 )
             )
 
