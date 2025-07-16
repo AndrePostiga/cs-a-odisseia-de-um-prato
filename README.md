@@ -36,10 +36,6 @@ make install
   ```bash
   make test
   ```
-- **Open an interactive shell**  
-  ```bash
-  make shell
-  ```
 
 ---
 
@@ -53,13 +49,13 @@ make install
   ```bash
   make format
   ```
-- **Type-check**  
-  ```bash
-  make typecheck
-  ```
 - **Clean caches**  
   ```bash
   make clean
+  ```
+- **Build**  
+  ```bash
+  make build
   ```
 
 ---
@@ -80,7 +76,6 @@ You can invoke your pre-commit checks on staged files (or all files) without cre
    ```bash
    poetry run pre-commit run black
    poetry run pre-commit run ruff
-   poetry run pre-commit run mypy
    ```
 
 ---
