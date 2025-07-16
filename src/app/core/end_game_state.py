@@ -7,15 +7,22 @@ from app.pplay.gameimage import GameImage
 from app.ui.menu_button import MenuButton
 from app.core.observer import Observable, Observer
 from app.entities.jumping_character import JumpingCharacter
+from app.pplay.sound import Sound
 from app.seedwork.path_helper import asset_path
 
 
 class EndGameState(Observable, Observer):
-    def __init__(self, window: Window, rescued_characters: Set[str]):
+    def __init__(
+        self, window: Window, rescued_characters: Set[str], initial_volume: int = 5
+    ):
         super().__init__()
         self.window = window
         self.logger = logging.getLogger(__name__)
         self.background = GameImage(asset_path("images", "fim.png"))
+
+        self.menu_music = Sound(asset_path("musics", "fim.mp3"))
+        self.menu_music.set_volume(initial_volume)
+        self.menu_music.set_repeat(True)
 
         self.main_menu_button = MenuButton(
             asset_path("images", "main_menu_button.png"),
@@ -34,6 +41,15 @@ class EndGameState(Observable, Observer):
         self.characters: List[JumpingCharacter] = []
         self.rescued_text_info: dict | None = None
         self._create_characters(rescued_characters)
+
+    def start_music(self) -> None:
+        if not self.menu_music.is_playing():
+            self.menu_music.play()
+            self.logger.info("End music started")
+
+    def stop_music(self) -> None:
+        self.menu_music.stop()
+        self.logger.info("End music stopped")
 
     def _create_characters(self, rescued_characters: Set[str]):
         all_possible_friends = {"butter", "cheese", "dried_meat", "milk"}
@@ -94,6 +110,7 @@ class EndGameState(Observable, Observer):
         self.main_menu_button.update_hover_state(mouse_x, mouse_y)
 
         if mouse.is_button_pressed(1):
+            self.stop_music()
             if self.main_menu_button.is_hovered:
                 self.main_menu_button.on_click()
 

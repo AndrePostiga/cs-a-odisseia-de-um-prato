@@ -67,6 +67,7 @@ class Game(Observer):
             if self.level_slider:
                 rescued_characters = self.level_slider.rescued_characters
                 self.end_game_state = EndGameState(self.window, rescued_characters)
+                self.end_game_state.start_music()
                 self.end_game_state.add_observer(self)
                 self.current_state = GameState.GAME_WON
                 self.level_slider = None
@@ -119,7 +120,7 @@ class Game(Observer):
                 self.logger.info("Game resumed")
 
         self.esc_pressed = esc_currently_pressed
-    
+
     def draw_game(self):
         # Desenhe tudo do jogo aqui (mapa, personagens, HUD, etc.)
         if self.level_slider:
@@ -156,9 +157,15 @@ class Game(Observer):
                     self.pause_menu.update(delta_time)
                     self.pause_menu.draw()
             elif self.current_state == GameState.OPTIONS:
-                if hasattr(self, "previous_state") and self.previous_state == GameState.PAUSED:
+                if (
+                    hasattr(self, "previous_state")
+                    and self.previous_state == GameState.PAUSED
+                ):
                     self.draw_game()  # Desenha o jogo pausado
-                elif hasattr(self, "previous_state") and self.previous_state == GameState.MENU:
+                elif (
+                    hasattr(self, "previous_state")
+                    and self.previous_state == GameState.MENU
+                ):
                     self.menu.draw()  # Desenha o menu principal
                 self.options_menu.volume = self.current_volume
                 self.options_menu.update(delta_time)
